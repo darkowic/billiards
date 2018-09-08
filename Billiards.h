@@ -32,11 +32,11 @@ namespace Urho3D {
 
 }
 
-/// Static 3D scene example.
-/// This sample demonstrates:
-///     - Creating a 3D scene with static content
-///     - Displaying the scene using the Renderer subsystem
-///     - Handling keyboard and mouse input to move a freelook camera
+class Table;
+
+class Ball;
+class WhiteBall;
+
 class Billiards : public Sample {
 URHO3D_OBJECT(Billiards, Sample);
 
@@ -66,6 +66,18 @@ private:
     /// Handle the logic update event.
     void HandleUpdate(StringHash eventType, VariantMap &eventData);
 
+
+    void HandlePostUpdate(StringHash eventType, VariantMap &eventData);
+
     /// Handle the post-render update event.
     void HandlePostRenderUpdate(StringHash eventType, VariantMap &eventData);
+
+    void SpawnObject();
+
+    void CreateTable();
+
+    void CreateWhiteBall();
+
+    WeakPtr<Table> table_;
+    WeakPtr<WhiteBall> whiteBall_;
 };

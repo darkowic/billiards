@@ -20,6 +20,8 @@
 // THE SOFTWARE.
 //
 
+#pragma once
+
 #include <Urho3D/Core/CoreEvents.h>
 #include <Urho3D/Engine/Engine.h>
 #include <Urho3D/Graphics/Camera.h>
@@ -39,8 +41,12 @@
 #include <Urho3D/Physics/CollisionShape.h>
 #include <Urho3D/Physics/PhysicsWorld.h>
 #include <Urho3D/Physics/RigidBody.h>
+#include <Urho3D/IO/Log.h>
 
 #include "Billiards.h"
+#include "Table.h"
+#include "Ball.h"
+#include "WhiteBall.h"
 
 #include <Urho3D/DebugNew.h>
 
@@ -48,9 +54,18 @@
 
 URHO3D_DEFINE_APPLICATION_MAIN(Billiards)
 
+const float CAMERA_DISTANCE = 20.0f;
+// Mouse sensitivity as degrees per pixel
+const float MOUSE_SENSITIVITY = 0.1f;
+
+
 Billiards::Billiards(Context *context) :
         Sample(context) {
+    Table::RegisterObject(context);
+    Ball::RegisterObject(context);
 }
+
+// http://billiards.colostate.edu/threads/physics.html
 
 void Billiards::Start() {
     // Execute base class startup
@@ -58,6 +73,11 @@ void Billiards::Start() {
 
     // Create the scene content
     CreateScene();
+
+    CreateTable();
+
+    // Create the white ball
+    CreateWhiteBall();
 
     // Create the UI content
     CreateInstructions();
@@ -74,6 +94,15 @@ void Billiards::Start() {
 
 void Billiards::CreateScene() {
     ResourceCache *cache = GetSubsystem<ResourceCache>();
+
+
+    // Create camera and define viewport. We will be doing load / save, so it's convenient to create the camera outside the scene,
+    // so that it won't be destroyed and recreated, and we don't have to redefine the viewport on load
+    cameraNode_ = new Node(context_);
+    cameraNode_->SetPosition(Vector3(-30.0f, 17.0f, -17.0f));
+    Camera *camera = cameraNode_->CreateComponent<Camera>();
+    camera->SetFarClip(500.0f);
+    GetSubsystem<Renderer>()->SetViewport(0, new Viewport(context_, scene_, camera));
 
     scene_ = new Scene(context_);
 
@@ -99,83 +128,31 @@ void Billiards::CreateScene() {
     // light direction; we will use the SetDirection() function which calculates the orientation from a forward direction vector.
     // The light will use default settings (white light, no shadows)
     Node *lightNode = scene_->CreateChild("DirectionalLight");
-    lightNode->SetDirection(Vector3(0.6f, -1.0f, 0.8f)); // The direction vector does not need to be normalized
+    lightNode->SetPosition(Vector3(0.0f, 30.0f, 0.0f));
+    lightNode->SetDirection(Vector3(0.0f, -1.0f, 0.0f)); // The direction vector does not need to be normalized
     Light *light = lightNode->CreateComponent<Light>();
+    light->SetBrightness(1.5f);
     light->SetLightType(LIGHT_DIRECTIONAL);
+}
 
-    // Create more StaticModel objects to the scene, randomly positioned, rotated and scaled. For rotation, we construct a
-    // quaternion from Euler angles where the Y angle (rotation about the Y axis) is randomized. The mushroom model contains
-    // LOD levels, so the StaticModel component will automatically select the LOD level according to the view distance (you'll
-    // see the model get simpler as it moves further away). Finally, rendering a large number of the same object with the
-    // same material allows instancing to be used, if the GPU supports it. This reduces the amount of CPU work in rendering the
-    // scene.
-    /*
-    const unsigned NUM_OBJECTS = 200;
-    for (unsigned i = 0; i < NUM_OBJECTS; ++i)
-    {
-        Node* mushroomNode = scene_->CreateChild("Mushroom");
-        mushroomNode->SetPosition(Vector3(Random(90.0f) - 45.0f, 0.0f, Random(90.0f) - 45.0f));
-        mushroomNode->SetRotation(Quaternion(0.0f, Random(360.0f), 0.0f));
-        mushroomNode->SetScale(0.5f + Random(2.0f));
-        StaticModel* mushroomObject = mushroomNode->CreateComponent<StaticModel>();
-        mushroomObject->SetModel(cache->GetResource<Model>("Models/Mushroom.mdl"));
-        mushroomObject->SetMaterial(cache->GetResource<Material>("Materials/Mushroom.xml"));
-    }
-    */
+void Billiards::CreateTable() {
+    Node *tableNode = scene_->CreateChild("Table");
+    tableNode->SetPosition(Vector3(0.0f, 7.5f, 0.0f));
+    tableNode->SetScale(0.1f);
 
-    {
-        Node *tableNode = scene_->CreateChild("Table");
-        tableNode->SetPosition(Vector3(0.0f, 7.5f, 0.0f));
-//    tableNode->SetRotation(Quaternion(0.0f, Random(360.0f), 0.0f));
-        tableNode->SetScale(0.1f);
-        StaticModel *tableObject = tableNode->CreateComponent<StaticModel>();
-        tableObject->SetModel(cache->GetResource<Model>("Models/Table.mdl"));
-        tableObject->SetMaterial(0, cache->GetResource<Material>("Materials/01 - Default.xml"));
-        tableObject->SetMaterial(1, cache->GetResource<Material>("Materials/08 - Default.xml"));
-        tableObject->SetMaterial(2, cache->GetResource<Material>("Materials/07 - Default.xml"));
-        tableObject->SetMaterial(3, cache->GetResource<Material>("Materials/02 - Default.xml"));
-        tableObject->SetMaterial(4, cache->GetResource<Material>("Materials/03 - Default.xml"));
-
-        // Make the floor physical by adding RigidBody and CollisionShape components. The RigidBody's default
-        // parameters make the object static (zero mass.) Note that a CollisionShape by itself will not participate
-        // in the physics simulation
-        /*RigidBody* body = */tableNode->CreateComponent<RigidBody>();
-        CollisionShape *shape = tableNode->CreateComponent<CollisionShape>();
-        // Set a box shape of size 1 x 1 x 1 for collision. The shape will be scaled with the scene node scale, so the
-        // rendering and physics representation sizes should match (the box model is also 1 x 1 x 1.)
-//        shape->SetBox(Vector3::ONE);
-        shape->SetBox(Vector3(100.0f, 0.0f, 100.0f));
-    }
+    table_ = tableNode->CreateComponent<Table>();
+    table_->Init();
+}
 
 
+void Billiards::CreateWhiteBall() {
     Node *whiteBallNode = scene_->CreateChild("WhiteBall");
-    whiteBallNode->SetPosition(Vector3(0.0f, 10.0f, 0.0f));
-    whiteBallNode->SetScale(0.9f);
-    StaticModel *whiteBallObject = whiteBallNode->CreateComponent<StaticModel>();
-    whiteBallObject->SetModel(cache->GetResource<Model>("Models/Sphere.mdl"));
-//    whiteBallObject->SetMaterial(cache->GetResource<Material>("Materials/03 - Default.xml"));
+    whiteBallNode->SetPosition(Vector3(-10.0f, 7.5f, -1.0f));
 
-    // Create RigidBody and CollisionShape components like above. Give the RigidBody mass to make it movable
-    // and also adjust friction. The actual mass is not important; only the mass ratios between colliding
-    // objects are significant
-    RigidBody* body = whiteBallNode->CreateComponent<RigidBody>();
-    body->SetMass(1.0f);
-    body->SetFriction(0.75f);
-    CollisionShape* shape = whiteBallNode->CreateComponent<CollisionShape>();
-    shape->SetBox(Vector3::ONE);
-
-
-
-
-    // Create a scene node for the camera, which we will move around
-    // The camera will use default settings (1000 far clip distance, 45 degrees FOV, set aspect ratio automatically)
-    cameraNode_ = scene_->CreateChild("Camera");
-    cameraNode_->CreateComponent<Camera>();
-
-    // Set an initial position for the camera scene node above the plane
-    cameraNode_->SetPosition(Vector3(-30.0f, 17.0f, -17.0f));
-//    cameraNode_->SetRotation(Quaternion(10.0f, 10.0f, 0.0f));
-
+    // Create the vehicle logic component
+    whiteBall_ = whiteBallNode->CreateComponent<WhiteBall>();
+    // Create the rendering and physics components
+    whiteBall_->Init();
 }
 
 void Billiards::CreateInstructions() {
@@ -203,6 +180,40 @@ void Billiards::SetupViewport() {
     renderer->SetViewport(0, viewport);
 }
 
+// For debugging purposes only
+void Billiards::SpawnObject() {
+    ResourceCache *cache = GetSubsystem<ResourceCache>();
+
+    // Create a smaller box at camera position
+    Node *boxNode = scene_->CreateChild("SpawnedBall");
+    boxNode->SetPosition(cameraNode_->GetPosition());
+    boxNode->SetRotation(cameraNode_->GetRotation());
+    boxNode->SetScale(BALL_SCALE);
+    StaticModel *boxObject = boxNode->CreateComponent<StaticModel>();
+    boxObject->SetModel(cache->GetResource<Model>("Models/Sphere.mdl"));
+    boxObject->SetMaterial(cache->GetResource<Material>("Materials/StoneEnvMapSmall.xml"));
+    boxObject->SetCastShadows(true);
+
+    // Create physics components, use a smaller mass also
+    RigidBody *body = boxNode->CreateComponent<RigidBody>();
+    body->SetMass(BALL_MASS);
+    body->SetFriction(BALL_FRICTION);
+    body->SetLinearDamping(BALL_LINEAR_DAMPING);
+    body->SetAngularDamping(BALL_ANGULAR_DAMPING);
+//    body->SetRollingFriction(1.0f);
+    body->SetRestitution(BALL_RESTITUTION);
+    CollisionShape *shape = boxNode->CreateComponent<CollisionShape>();
+    shape->SetSphere(1.0f);
+
+    const float OBJECT_VELOCITY = 10.0f;
+
+    // Set initial velocity for the RigidBody based on camera forward vector. Add also a slight up component
+    // to overcome gravity better
+    body->SetLinearVelocity(cameraNode_->GetRotation() * Vector3(0.0f, 0.25f, 1.0f) * OBJECT_VELOCITY);
+}
+
+
+// TODO: use this in free camera mode
 void Billiards::MoveCamera(float timeStep) {
     // Do not move if the UI has a focused element (the console)
     if (GetSubsystem<UI>()->GetFocusElement())
@@ -212,8 +223,6 @@ void Billiards::MoveCamera(float timeStep) {
 
     // Movement speed as world units per second
     const float MOVE_SPEED = 20.0f;
-    // Mouse sensitivity as degrees per pixel
-    const float MOUSE_SENSITIVITY = 0.1f;
 
     // Use this frame's mouse motion to adjust camera node yaw and pitch. Clamp the pitch between -90 and 90 degrees
     IntVector2 mouseMove = input->GetMouseMove();
@@ -235,12 +244,15 @@ void Billiards::MoveCamera(float timeStep) {
     if (input->GetKeyDown(KEY_D))
         cameraNode_->Translate(Vector3::RIGHT * MOVE_SPEED * timeStep);
 
-//    std::cout<<cameraNode_->GetPosition().x_<<" "<<cameraNode_->GetPosition().y_<<" "<<cameraNode_->GetPosition().z_<<std::endl;
 }
+
 
 void Billiards::SubscribeToEvents() {
     // Subscribe HandleUpdate() function for processing update events
     SubscribeToEvent(E_UPDATE, URHO3D_HANDLER(Billiards, HandleUpdate));
+
+    // Subscribe to PostUpdate event for updating the camera position after physics simulation
+    SubscribeToEvent(E_POSTUPDATE, URHO3D_HANDLER(Billiards, HandlePostUpdate));
 
     // Subscribe HandlePostRenderUpdate() function for processing the post-render update event, during which we request
     // debug geometry
@@ -250,16 +262,55 @@ void Billiards::SubscribeToEvents() {
 void Billiards::HandleUpdate(StringHash eventType, VariantMap &eventData) {
     using namespace Update;
 
+    Input *input = GetSubsystem<Input>();
+
     // Take the frame time step, which is stored as a float
     float timeStep = eventData[P_TIMESTEP].GetFloat();
 
     // Move the camera, scale movement with time step
-    MoveCamera(timeStep);
+//    MoveCamera(timeStep);
+
+    if (whiteBall_) {
+        whiteBall_->controls_.yaw_ += (float) input->GetMouseMoveX() * MOUSE_SENSITIVITY;
+        whiteBall_->controls_.pitch_ += (float) input->GetMouseMoveY() * MOUSE_SENSITIVITY;
+        // Limit pitch
+        whiteBall_->controls_.pitch_ = Clamp(whiteBall_->controls_.pitch_, 10.0f, 70.0f);
+    }
+
+    // "Shoot" a physics object with left mousebutton
+    if (input->GetMouseButtonPress(MOUSEB_LEFT))
+        SpawnObject();
 }
 
-void Billiards::HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData)
-{
+void Billiards::HandlePostUpdate(StringHash eventType, VariantMap &eventData) {
+    if (!whiteBall_)
+        return;
+
+    Node *whiteBallNode = whiteBall_->GetNode();
+
+    // Physics update has completed. Position camera behind vehicle
+    Quaternion dir(whiteBallNode->GetRotation().YawAngle(), Vector3::UP);
+    dir = dir * Quaternion(whiteBall_->controls_.yaw_, Vector3::UP);
+    dir = dir * Quaternion(whiteBall_->controls_.pitch_, Vector3::RIGHT);
+
+    Vector3 cameraTargetPos = whiteBallNode->GetPosition() - dir * Vector3(0.0f, 0.0f, CAMERA_DISTANCE);
+    Vector3 cameraStartPos = whiteBallNode->GetPosition();
+
+    // Raycast camera against static objects (physics collision mask 2)
+    // and move it closer to the vehicle if something in between
+    Ray cameraRay(cameraStartPos, cameraTargetPos - cameraStartPos);
+    float cameraRayLength = (cameraTargetPos - cameraStartPos).Length();
+    PhysicsRaycastResult result;
+    scene_->GetComponent<PhysicsWorld>()->RaycastSingle(result, cameraRay, cameraRayLength, 2);
+    if (result.body_)
+        cameraTargetPos = cameraStartPos + cameraRay.direction_ * (result.distance_ - 0.5f);
+
+    cameraNode_->SetPosition(cameraTargetPos);
+    cameraNode_->SetRotation(dir);
+}
+
+void Billiards::HandlePostRenderUpdate(StringHash eventType, VariantMap &eventData) {
     // If draw debug mode is enabled, draw physics debug geometry. Use depth test to make the result easier to interpret
-//    if (drawDebug_)
-        scene_->GetComponent<PhysicsWorld>()->DrawDebugGeometry(true);
+    //    if (drawDebug_)
+    scene_->GetComponent<PhysicsWorld>()->DrawDebugGeometry(true);
 }

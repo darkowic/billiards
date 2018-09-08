@@ -44,8 +44,8 @@
 
 Sample::Sample(Context* context) :
     Application(context),
-    yaw_(0.0f),
-    pitch_(0.0f),
+    yaw_(55.0f),
+    pitch_(20.0f),
     touchEnabled_(false),
     useMouseMode_(MM_ABSOLUTE),
     screenJoystickIndex_(M_MAX_UNSIGNED),
