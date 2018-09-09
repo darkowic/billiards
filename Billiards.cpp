@@ -20,8 +20,6 @@
 // THE SOFTWARE.
 //
 
-#pragma once
-
 #include <Urho3D/Core/CoreEvents.h>
 #include <Urho3D/Engine/Engine.h>
 #include <Urho3D/Graphics/Camera.h>
@@ -63,6 +61,7 @@ Billiards::Billiards(Context *context) :
         Sample(context) {
     Table::RegisterObject(context);
     Ball::RegisterObject(context);
+    WhiteBall::RegisterObject(context);
 }
 
 // http://billiards.colostate.edu/threads/physics.html
@@ -152,7 +151,7 @@ void Billiards::CreateWhiteBall() {
     // Create the vehicle logic component
     whiteBall_ = whiteBallNode->CreateComponent<WhiteBall>();
     // Create the rendering and physics components
-    whiteBall_->Init();
+    whiteBall_->Init(cameraNode_);
 }
 
 void Billiards::CreateInstructions() {
@@ -271,10 +270,20 @@ void Billiards::HandleUpdate(StringHash eventType, VariantMap &eventData) {
 //    MoveCamera(timeStep);
 
     if (whiteBall_) {
-        whiteBall_->controls_.yaw_ += (float) input->GetMouseMoveX() * MOUSE_SENSITIVITY;
-        whiteBall_->controls_.pitch_ += (float) input->GetMouseMoveY() * MOUSE_SENSITIVITY;
-        // Limit pitch
-        whiteBall_->controls_.pitch_ = Clamp(whiteBall_->controls_.pitch_, 10.0f, 70.0f);
+        UI *ui = GetSubsystem<UI>();
+
+        // Get movement controls and assign them to the vehicle component. If UI has a focused element, clear controls
+        if (!ui->GetFocusElement()) {
+
+            whiteBall_->controls_.Set(CTRL_PUSH, input->GetKeyDown(KEY_SPACE));
+
+            whiteBall_->controls_.yaw_ += (float) input->GetMouseMoveX() * MOUSE_SENSITIVITY;
+            whiteBall_->controls_.pitch_ += (float) input->GetMouseMoveY() * MOUSE_SENSITIVITY;
+            // Limit pitch
+            whiteBall_->controls_.pitch_ = Clamp(whiteBall_->controls_.pitch_, 10.0f, 70.0f);
+        } else {
+            whiteBall_->controls_.Set(CTRL_PUSH, 0);
+        }
     }
 
     // "Shoot" a physics object with left mousebutton
@@ -288,9 +297,7 @@ void Billiards::HandlePostUpdate(StringHash eventType, VariantMap &eventData) {
 
     Node *whiteBallNode = whiteBall_->GetNode();
 
-    // Physics update has completed. Position camera behind vehicle
-    Quaternion dir(whiteBallNode->GetRotation().YawAngle(), Vector3::UP);
-    dir = dir * Quaternion(whiteBall_->controls_.yaw_, Vector3::UP);
+    Quaternion dir(whiteBall_->controls_.yaw_, Vector3::UP);
     dir = dir * Quaternion(whiteBall_->controls_.pitch_, Vector3::RIGHT);
 
     Vector3 cameraTargetPos = whiteBallNode->GetPosition() - dir * Vector3(0.0f, 0.0f, CAMERA_DISTANCE);
