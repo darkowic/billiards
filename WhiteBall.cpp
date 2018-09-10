@@ -13,8 +13,7 @@ WhiteBall::WhiteBall(Context *context) : Ball(context) {
     SetUpdateEventMask(USE_FIXEDUPDATE);
 }
 
-void WhiteBall::RegisterObject(Context* context)
-{
+void WhiteBall::RegisterObject(Context *context) {
     context->RegisterFactory<WhiteBall>();
 }
 
@@ -25,18 +24,22 @@ void WhiteBall::Init(WeakPtr<Node> cameraNode) {
 }
 
 
-void WhiteBall::FixedUpdate(float timeStep)
-{
+void WhiteBall::FixedUpdate(float timeStep) {
 
-    const float PUSH_FORCE = 50.0f;
+    if ((controls_.buttons_ & CTRL_PUSH)) {
+        if (pushButtonHoldingTime_ < MAX_PUSH_BUTTON_HOLD_TIME) {
+            pushButtonHoldingTime_ += timeStep;
+        }
+    } else {
+        if (pushButtonHoldingTime_ >= timeStep) {
+            URHO3D_LOGINFO("Push the ball!" + (String) pushButtonHoldingTime_);
 
-    // Read controls
-    if (controls_.buttons_ & CTRL_PUSH) {
-        URHO3D_LOGINFO("Click space and push");
+            Vector3 moveDirection = (node_->GetPosition() - cameraNode_->GetPosition()).Normalized();
 
-        Vector3 moveDirection = (node_->GetPosition() - cameraNode_->GetPosition()).Normalized();
-
-        body_->ApplyForce(moveDirection * PUSH_FORCE);
+            body_->ApplyForce(moveDirection * PUSH_FORCE_PER_SECOND * pushButtonHoldingTime_);
+        }
+        // reset holding time value
+        pushButtonHoldingTime_ = 0.f;
     }
 }
 

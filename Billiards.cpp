@@ -167,6 +167,42 @@ void Billiards::CreateInstructions() {
     instructionText->SetHorizontalAlignment(HA_CENTER);
     instructionText->SetVerticalAlignment(VA_CENTER);
     instructionText->SetPosition(0, ui->GetRoot()->GetHeight() / 4);
+
+
+    UIElement *pushForceLevelBarContainer = ui->GetRoot()->CreateChild<UIElement>();
+    pushForceLevelBarContainer->SetPosition(0, 0);
+
+    Text *pushForceLevelBarTipText = pushForceLevelBarContainer->CreateChild<Text>();
+    pushForceLevelBarTipText->SetText("Push force level bar");
+    pushForceLevelBarTipText->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
+
+    UIElement *barContainer = pushForceLevelBarContainer->CreateChild<UIElement>();
+    barContainer->SetPosition(0, 25);
+    Text *barTextStart = barContainer->CreateChild<Text>();
+    barTextStart->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
+    barTextStart->SetText("|");
+    pushForceLevelBarValue_ = barContainer->CreateChild<Text>();
+    pushForceLevelBarValue_->SetPosition(barTextStart->GetWidth(), 0);
+    pushForceLevelBarValue_->SetText(GetPushForceLevelString(0));
+    pushForceLevelBarValue_->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
+
+    Text *barTextEnd = barContainer->CreateChild<Text>();
+    barTextEnd->SetPosition(barTextStart->GetWidth() + pushForceLevelBarValue_->GetWidth(), 0);;
+    barTextEnd->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
+    barTextEnd->SetText("| Max");
+}
+
+
+String Billiards::GetPushForceLevelString(int level) {
+    String text = "";
+    for (int i = 1; i <= PUSH_FORCE_LEVEL_BAR_DOTS_COUNT; ++i) {
+        if (i <= level) {
+            text += ">";
+        } else {
+            text += ".";
+        }
+    }
+    return text;
 }
 
 void Billiards::SetupViewport() {
@@ -286,7 +322,7 @@ void Billiards::HandleUpdate(StringHash eventType, VariantMap &eventData) {
         }
     }
 
-    // "Shoot" a physics object with left mousebutton
+    // "Shoot" a physics object with left mouse button
     if (input->GetMouseButtonPress(MOUSEB_LEFT))
         SpawnObject();
 }
@@ -314,6 +350,10 @@ void Billiards::HandlePostUpdate(StringHash eventType, VariantMap &eventData) {
 
     cameraNode_->SetPosition(cameraTargetPos);
     cameraNode_->SetRotation(dir);
+
+    // set push level
+    const int level = int(whiteBall_->pushButtonHoldingTime_ / MAX_PUSH_BUTTON_HOLD_TIME * PUSH_FORCE_LEVEL_BAR_DOTS_COUNT);
+    pushForceLevelBarValue_->SetText(GetPushForceLevelString(level));
 }
 
 void Billiards::HandlePostRenderUpdate(StringHash eventType, VariantMap &eventData) {

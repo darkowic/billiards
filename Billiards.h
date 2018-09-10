@@ -30,12 +30,17 @@ namespace Urho3D {
 
     class Scene;
 
+    class Text;
+
 }
 
 class Table;
 
 class Ball;
+
 class WhiteBall;
+
+const int PUSH_FORCE_LEVEL_BAR_DOTS_COUNT = 25;
 
 class Billiards : public Sample {
 URHO3D_OBJECT(Billiards, Sample);
@@ -78,6 +83,9 @@ private:
 
     void CreateWhiteBall();
 
+    String GetPushForceLevelString(int level);
+
     WeakPtr<Table> table_;
     WeakPtr<WhiteBall> whiteBall_;
+    WeakPtr<Text> pushForceLevelBarValue_;
 };
