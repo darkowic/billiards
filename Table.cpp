@@ -40,18 +40,24 @@ void Table::Init() {
     CollisionShape *tableFloor = node_->CreateComponent<CollisionShape>();
     tableFloor->SetBox(Vector3(333.0f, 0.0f, 160.0f));
     tableFloor->SetPosition(Vector3(10.0f, -4.8f, -5.0f));
+    body->SetRestitution(0.2f);
+    body->SetFriction(0.2f);
 
-    InitBumper(Vector3(155.0f, 5.0f, 5.0f), Vector3(-75.0f, -1.5f, 79.5f));
-    InitBumper(Vector3(155.0f, 5.0f, 5.0f), Vector3(96.0f, -1.5f, 79.5f));
-    InitBumper(Vector3(155.0f, 5.0f, 5.0f), Vector3(-75.0f, -1.5f, -89.0f));
-    InitBumper(Vector3(155.0f, 5.0f, 5.0f), Vector3(96.0f, -1.5f, -89.0f));
-    InitBumper(Vector3(5.0f, 5.0f, 148.0f), Vector3(181.0f, -1.5f, -5.0f));
-    InitBumper(Vector3(5.0f, 5.0f, 148.0f), Vector3(-160.0f, -1.5f, -5.0f));
+    Node *bumpersNode = node_->CreateChild("Bumpers");
+    RigidBody *bumpersBody = bumpersNode->CreateComponent<RigidBody>();
+    bumpersBody->SetRestitution(0.5f);
+
+    InitBumper(bumpersNode, Vector3(155.0f, 5.0f, 5.0f), Vector3(-75.0f, -1.5f, 79.5f));
+    InitBumper(bumpersNode, Vector3(155.0f, 5.0f, 5.0f), Vector3(96.0f, -1.5f, 79.5f));
+    InitBumper(bumpersNode, Vector3(155.0f, 5.0f, 5.0f), Vector3(-75.0f, -1.5f, -89.0f));
+    InitBumper(bumpersNode, Vector3(155.0f, 5.0f, 5.0f), Vector3(96.0f, -1.5f, -89.0f));
+    InitBumper(bumpersNode, Vector3(5.0f, 5.0f, 148.0f), Vector3(181.0f, -1.5f, -5.0f));
+    InitBumper(bumpersNode, Vector3(5.0f, 5.0f, 148.0f), Vector3(-160.0f, -1.5f, -5.0f));
 }
 
 
-void Table::InitBumper(const Vector3 &size, const Vector3 &position) {
-    CollisionShape *bumper = node_->CreateComponent<CollisionShape>();
+void Table::InitBumper(Node* node, const Vector3 &size, const Vector3 &position) {
+    CollisionShape *bumper = node->CreateComponent<CollisionShape>();
     bumper->SetBox(size);
     bumper->SetPosition(position);
 }

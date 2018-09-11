@@ -35,7 +35,8 @@ void WhiteBall::FixedUpdate(float timeStep) {
             URHO3D_LOGINFO("Push the ball!" + (String) pushButtonHoldingTime_);
 
             Vector3 moveDirection = (node_->GetPosition() - cameraNode_->GetPosition()).Normalized();
-
+            // project the moveDirection vector to x z -> set y to 0
+            moveDirection.y_ = 0.f;
             body_->ApplyForce(moveDirection * PUSH_FORCE_PER_SECOND * pushButtonHoldingTime_);
         }
         // reset holding time value

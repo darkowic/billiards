@@ -17,5 +17,5 @@ public:
     void Init();
 
 private:
-    void InitBumper(const Vector3& size, const Vector3& position);
+    void InitBumper(Node* node, const Vector3& size, const Vector3& position);
 };
