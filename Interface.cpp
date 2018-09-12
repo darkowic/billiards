@@ -1,0 +1,74 @@
+#include <Urho3D/Core/CoreEvents.h>
+#include <Urho3D/UI/Font.h>
+#include <Urho3D/UI/Text.h>
+#include <Urho3D/UI/UI.h>
+#include <Urho3D/Core/Context.h>
+#include <Urho3D/Resource/ResourceCache.h>
+
+#include "Interface.h"
+
+
+Interface::Interface(Context *context) :
+        UIElement(context),
+        uiRoot_(GetSubsystem<UI>()->GetRoot()) {}
+
+
+void Interface::RegisterObject(Context *context) {
+    context->RegisterFactory<Interface>();
+}
+
+void Interface::Init() {
+    ResourceCache *cache = GetSubsystem<ResourceCache>();
+
+    UIElement *pushForceLevelBarContainer = uiRoot_->CreateChild<UIElement>();
+    pushForceLevelBarContainer->SetPosition(0, 0);
+
+    Text *pushForceLevelBarTipText = pushForceLevelBarContainer->CreateChild<Text>();
+    pushForceLevelBarTipText->SetText("Push force level bar");
+    pushForceLevelBarTipText->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
+
+    UIElement *barContainer = pushForceLevelBarContainer->CreateChild<UIElement>();
+    barContainer->SetPosition(0, 25);
+    Text *barTextStart = barContainer->CreateChild<Text>();
+    barTextStart->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
+    barTextStart->SetText("|");
+    pushForceLevelBarValue_ = barContainer->CreateChild<Text>();
+    pushForceLevelBarValue_->SetPosition(barTextStart->GetWidth(), 0);
+    pushForceLevelBarValue_->SetText(GetPushForceLevelString(0));
+    pushForceLevelBarValue_->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
+
+    Text *barTextEnd = barContainer->CreateChild<Text>();
+    barTextEnd->SetPosition(barTextStart->GetWidth() + pushForceLevelBarValue_->GetWidth(), 0);;
+    barTextEnd->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
+    barTextEnd->SetText("| Max");
+
+    statusText_ = uiRoot_->CreateChild<Text>();
+    statusText_->SetPosition(0, 50);
+    statusText_->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
+    SetStatusText(false);
+}
+
+void Interface::SetStatusText(bool isMoving) {
+    if (isMoving) {
+        statusText_->SetText("Balls are rolling...");
+    } else {
+        statusText_->SetText("Hold the space button to push the white ball");
+    }
+}
+
+
+void Interface::UpdatePushLevel(int level) {
+    pushForceLevelBarValue_->SetText(GetPushForceLevelString(level));
+}
+
+String Interface::GetPushForceLevelString(int level) {
+    String text = "";
+    for (int i = 1; i <= PUSH_FORCE_LEVEL_BAR_DOTS_COUNT; ++i) {
+        if (i <= level) {
+            text += ">";
+        } else {
+            text += ".";
+        }
+    }
+    return text;
+}

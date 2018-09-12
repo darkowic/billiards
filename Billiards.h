@@ -40,7 +40,7 @@ class Ball;
 
 class WhiteBall;
 
-const int PUSH_FORCE_LEVEL_BAR_DOTS_COUNT = 25;
+class Interface;
 
 class Billiards : public Sample {
 URHO3D_OBJECT(Billiards, Sample);
@@ -57,7 +57,7 @@ private:
     void CreateScene();
 
     /// Construct an instruction text to the UI.
-    void CreateInstructions();
+    void CreateInterface();
 
     /// Set up a viewport for displaying the scene.
     void SetupViewport();
@@ -83,13 +83,11 @@ private:
 
     void CreateWhiteBall();
 
-    String GetPushForceLevelString(int level);
-
     bool IsAnyBallMoving();
 
     WeakPtr<Table> table_;
     WeakPtr<WhiteBall> whiteBall_;
-    WeakPtr<Text> pushForceLevelBarValue_;
+    WeakPtr<Interface> interface_;
     bool isAnyBallMoving_ = false;
-    Vector<Ball*> balls_;
+    Vector<Ball *> balls_;
 };

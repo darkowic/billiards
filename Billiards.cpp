@@ -33,9 +33,6 @@
 #include <Urho3D/Input/Input.h>
 #include <Urho3D/Resource/ResourceCache.h>
 #include <Urho3D/Scene/Scene.h>
-#include <Urho3D/UI/Font.h>
-#include <Urho3D/UI/Text.h>
-#include <Urho3D/UI/UI.h>
 #include <Urho3D/Physics/CollisionShape.h>
 #include <Urho3D/Physics/PhysicsWorld.h>
 #include <Urho3D/Physics/RigidBody.h>
@@ -45,6 +42,7 @@
 #include "Table.h"
 #include "Ball.h"
 #include "WhiteBall.h"
+#include "Interface.h"
 
 #include <Urho3D/DebugNew.h>
 
@@ -62,6 +60,7 @@ Billiards::Billiards(Context *context) :
     Table::RegisterObject(context);
     Ball::RegisterObject(context);
     WhiteBall::RegisterObject(context);
+    Interface::RegisterObject(context);
 }
 
 // http://billiards.colostate.edu/threads/physics.html
@@ -79,7 +78,7 @@ void Billiards::Start() {
     CreateWhiteBall();
 
     // Create the UI content
-    CreateInstructions();
+    CreateInterface();
 
     // Setup the viewport for displaying the scene
     SetupViewport();
@@ -155,56 +154,11 @@ void Billiards::CreateWhiteBall() {
     balls_.Push(whiteBall_);
 }
 
-void Billiards::CreateInstructions() {
-    ResourceCache *cache = GetSubsystem<ResourceCache>();
-    UI *ui = GetSubsystem<UI>();
-
-    // Construct new Text object, set string to display and font to use
-    Text *instructionText = ui->GetRoot()->CreateChild<Text>();
-    instructionText->SetText("Use WASD keys and mouse/touch to move helllo");
-    instructionText->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
-
-    // Position the text relative to the screen center
-    instructionText->SetHorizontalAlignment(HA_CENTER);
-    instructionText->SetVerticalAlignment(VA_CENTER);
-    instructionText->SetPosition(0, ui->GetRoot()->GetHeight() / 4);
-
-
-    UIElement *pushForceLevelBarContainer = ui->GetRoot()->CreateChild<UIElement>();
-    pushForceLevelBarContainer->SetPosition(0, 0);
-
-    Text *pushForceLevelBarTipText = pushForceLevelBarContainer->CreateChild<Text>();
-    pushForceLevelBarTipText->SetText("Push force level bar");
-    pushForceLevelBarTipText->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
-
-    UIElement *barContainer = pushForceLevelBarContainer->CreateChild<UIElement>();
-    barContainer->SetPosition(0, 25);
-    Text *barTextStart = barContainer->CreateChild<Text>();
-    barTextStart->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
-    barTextStart->SetText("|");
-    pushForceLevelBarValue_ = barContainer->CreateChild<Text>();
-    pushForceLevelBarValue_->SetPosition(barTextStart->GetWidth(), 0);
-    pushForceLevelBarValue_->SetText(GetPushForceLevelString(0));
-    pushForceLevelBarValue_->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
-
-    Text *barTextEnd = barContainer->CreateChild<Text>();
-    barTextEnd->SetPosition(barTextStart->GetWidth() + pushForceLevelBarValue_->GetWidth(), 0);;
-    barTextEnd->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
-    barTextEnd->SetText("| Max");
+void Billiards::CreateInterface() {
+    interface_ = GetSubsystem<UI>()->GetRoot()->CreateChild<Interface>();
+    interface_->Init();
 }
 
-
-String Billiards::GetPushForceLevelString(int level) {
-    String text = "";
-    for (int i = 1; i <= PUSH_FORCE_LEVEL_BAR_DOTS_COUNT; ++i) {
-        if (i <= level) {
-            text += ">";
-        } else {
-            text += ".";
-        }
-    }
-    return text;
-}
 
 void Billiards::SetupViewport() {
     Renderer *renderer = GetSubsystem<Renderer>();
@@ -358,11 +312,14 @@ void Billiards::HandlePostUpdate(StringHash eventType, VariantMap &eventData) {
     cameraNode_->SetPosition(cameraTargetPos);
     cameraNode_->SetRotation(dir);
 
-    // set push level
-    const int level = int(
-            whiteBall_->pushButtonHoldingTime_ / MAX_PUSH_BUTTON_HOLD_TIME * PUSH_FORCE_LEVEL_BAR_DOTS_COUNT
-    );
-    pushForceLevelBarValue_->SetText(GetPushForceLevelString(level));
+    if (!isAnyBallMoving_) {
+        // set push level
+        const int level = int(
+                whiteBall_->pushButtonHoldingTime_ / MAX_PUSH_BUTTON_HOLD_TIME * PUSH_FORCE_LEVEL_BAR_DOTS_COUNT
+        );
+        interface_->UpdatePushLevel(level);
+    }
+    interface_->SetStatusText(isAnyBallMoving_);
 }
 
 void Billiards::HandlePostRenderUpdate(StringHash eventType, VariantMap &eventData) {
