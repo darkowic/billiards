@@ -41,3 +41,7 @@ void Ball::Init() {
 //    body->SetRollingFriction(1.0f);
     body_->SetRestitution(BALL_RESTITUTION);
 }
+
+bool Ball::IsMoving() {
+    return body_->GetLinearVelocity() != Vector3::ZERO;
+};

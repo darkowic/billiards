@@ -85,7 +85,11 @@ private:
 
     String GetPushForceLevelString(int level);
 
+    bool IsAnyBallMoving();
+
     WeakPtr<Table> table_;
     WeakPtr<WhiteBall> whiteBall_;
     WeakPtr<Text> pushForceLevelBarValue_;
+    bool isAnyBallMoving_ = false;
+    Vector<Ball*> balls_;
 };

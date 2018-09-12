@@ -32,6 +32,8 @@ public:
     /// Initialize ball
     void Init();
 
+    bool IsMoving();
+
 protected:
     WeakPtr<RigidBody> body_;
 };

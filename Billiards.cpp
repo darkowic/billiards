@@ -152,6 +152,7 @@ void Billiards::CreateWhiteBall() {
     whiteBall_ = whiteBallNode->CreateComponent<WhiteBall>();
     // Create the rendering and physics components
     whiteBall_->Init(cameraNode_);
+    balls_.Push(whiteBall_);
 }
 
 void Billiards::CreateInstructions() {
@@ -305,13 +306,19 @@ void Billiards::HandleUpdate(StringHash eventType, VariantMap &eventData) {
     // Move the camera, scale movement with time step
 //    MoveCamera(timeStep);
 
+    // Before any next calculations - update isAnyBallMoving variable
+    IsAnyBallMoving();
+
     if (whiteBall_) {
         UI *ui = GetSubsystem<UI>();
 
         // Get movement controls and assign them to the vehicle component. If UI has a focused element, clear controls
         if (!ui->GetFocusElement()) {
 
-            whiteBall_->controls_.Set(CTRL_PUSH, input->GetKeyDown(KEY_SPACE));
+            if (!isAnyBallMoving_) {
+                // allow to push ball only after all balls stopped
+                whiteBall_->controls_.Set(CTRL_PUSH, input->GetKeyDown(KEY_SPACE));
+            }
 
             whiteBall_->controls_.yaw_ += (float) input->GetMouseMoveX() * MOUSE_SENSITIVITY;
             whiteBall_->controls_.pitch_ += (float) input->GetMouseMoveY() * MOUSE_SENSITIVITY;
@@ -352,7 +359,9 @@ void Billiards::HandlePostUpdate(StringHash eventType, VariantMap &eventData) {
     cameraNode_->SetRotation(dir);
 
     // set push level
-    const int level = int(whiteBall_->pushButtonHoldingTime_ / MAX_PUSH_BUTTON_HOLD_TIME * PUSH_FORCE_LEVEL_BAR_DOTS_COUNT);
+    const int level = int(
+            whiteBall_->pushButtonHoldingTime_ / MAX_PUSH_BUTTON_HOLD_TIME * PUSH_FORCE_LEVEL_BAR_DOTS_COUNT
+    );
     pushForceLevelBarValue_->SetText(GetPushForceLevelString(level));
 }
 
@@ -360,4 +369,15 @@ void Billiards::HandlePostRenderUpdate(StringHash eventType, VariantMap &eventDa
     // If draw debug mode is enabled, draw physics debug geometry. Use depth test to make the result easier to interpret
     //    if (drawDebug_)
     scene_->GetComponent<PhysicsWorld>()->DrawDebugGeometry(true);
+}
+
+bool Billiards::IsAnyBallMoving() {
+    isAnyBallMoving_ = false;
+    for (Vector<Ball *>::Iterator it = balls_.Begin(); it != balls_.End(); ++it) {
+        if ((*it)->IsMoving()) {
+            isAnyBallMoving_ = true;
+            break;
+        }
+    }
+    return isAnyBallMoving_;
 }
