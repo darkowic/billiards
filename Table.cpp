@@ -53,11 +53,28 @@ void Table::Init() {
     InitBumper(bumpersNode, Vector3(155.0f, 5.0f, 5.0f), Vector3(96.0f, -1.5f, -89.0f));
     InitBumper(bumpersNode, Vector3(5.0f, 5.0f, 148.0f), Vector3(181.0f, -1.5f, -5.0f));
     InitBumper(bumpersNode, Vector3(5.0f, 5.0f, 148.0f), Vector3(-160.0f, -1.5f, -5.0f));
+
+    // init pockets
+    InitPocket("Pocket1", Vector3(-163.0f, -3.0f, 80.0f));
+    InitPocket("Pocket2", Vector3(11.0f, -3.0f, 85.0f));
+    InitPocket("Pocket3", Vector3(184.0f, -3.0f, 80.0f));
+
+    InitPocket("Pocket4", Vector3(-163.0f, -3.0f, -90.0f));
+    InitPocket("Pocket5", Vector3(11.0f, -3.0f, -95.0f));
+    InitPocket("Pocket6", Vector3(184.0f, -3.0f, -90.0f));
 }
 
 
-void Table::InitBumper(Node* node, const Vector3 &size, const Vector3 &position) {
+void Table::InitBumper(Node *node, const Vector3 &size, const Vector3 &position) {
     CollisionShape *bumper = node->CreateComponent<CollisionShape>();
     bumper->SetBox(size);
     bumper->SetPosition(position);
+}
+
+void Table::InitPocket(String name, const Vector3 &position) {
+    Node *pocketNode = node_->CreateChild(name);
+    RigidBody *body = pocketNode->CreateComponent<RigidBody>();
+    CollisionShape *pocket = pocketNode->CreateComponent<CollisionShape>();
+    pocket->SetBox(Vector3(10.0f, 5.0f, 10.0f));
+    pocket->SetPosition(position);
 }
