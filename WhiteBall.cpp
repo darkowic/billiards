@@ -19,7 +19,7 @@ void WhiteBall::RegisterObject(Context *context) {
 
 
 void WhiteBall::Init(WeakPtr<Node> cameraNode) {
-    Ball::Init();
+    Ball::Init("Materials/White.xml");
     cameraNode_ = cameraNode;
 }
 

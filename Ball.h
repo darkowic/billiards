@@ -16,7 +16,7 @@ const float BALL_MASS = 1.0f;
 const float BALL_FRICTION = 0.2f;
 const float BALL_LINEAR_DAMPING = 0.1f;
 const float BALL_ANGULAR_DAMPING = 0.3f;
-const float BALL_RESTITUTION = 0.95f;
+const float BALL_RESTITUTION = 0.7f;
 
 
 class Ball : public LogicComponent {
@@ -30,7 +30,7 @@ public:
     static void RegisterObject(Context *context);
 
     /// Initialize ball
-    void Init();
+    void Init(String material);
 
     bool IsMoving();
 

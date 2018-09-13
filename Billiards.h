@@ -83,6 +83,10 @@ private:
 
     void CreateWhiteBall();
 
+    void CreateBalls();
+
+    void CreateBall(String name, const Vector2&);
+
     bool IsAnyBallMoving();
 
     WeakPtr<Table> table_;

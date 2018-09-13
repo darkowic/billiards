@@ -77,6 +77,8 @@ void Billiards::Start() {
     // Create the white ball
     CreateWhiteBall();
 
+    CreateBalls();
+
     // Create the UI content
     CreateInterface();
 
@@ -127,9 +129,8 @@ void Billiards::CreateScene() {
     // The light will use default settings (white light, no shadows)
     Node *lightNode = scene_->CreateChild("DirectionalLight");
     lightNode->SetPosition(Vector3(0.0f, 30.0f, 0.0f));
-    lightNode->SetDirection(Vector3(0.0f, -1.0f, 0.0f)); // The direction vector does not need to be normalized
+    lightNode->SetDirection(Vector3::DOWN); // The direction vector does not need to be normalized
     Light *light = lightNode->CreateComponent<Light>();
-    light->SetBrightness(1.5f);
     light->SetLightType(LIGHT_DIRECTIONAL);
 }
 
@@ -152,6 +153,33 @@ void Billiards::CreateWhiteBall() {
     // Create the rendering and physics components
     whiteBall_->Init(cameraNode_);
     balls_.Push(whiteBall_);
+}
+
+void Billiards::CreateBalls() {
+    CreateBall("Ball1", Vector2(7.0f, -1.0f));
+    CreateBall("Ball2", Vector2(8.0f, -1.5f));
+    CreateBall("Ball3", Vector2(8.0f, -0.5f));
+    CreateBall("Ball4", Vector2(9.0f, 0.f));
+    CreateBall("Ball5", Vector2(9.0f, -1.0f));
+    CreateBall("Ball6", Vector2(9.0f, -2.0f));
+    CreateBall("Ball7", Vector2(10.0f, 0.5f));
+    CreateBall("Ball8", Vector2(10.0f, -0.5f));
+    CreateBall("Ball9", Vector2(10.0f, -1.5f));
+    CreateBall("Ball10", Vector2(10.0f, -2.5f));
+    CreateBall("Ball11", Vector2(11.0f, 1.f));
+    CreateBall("Ball12", Vector2(11.0f, 0.f));
+    CreateBall("Ball13", Vector2(11.0f, -1.f));
+    CreateBall("Ball14", Vector2(11.0f, -2.f));
+    CreateBall("Ball15", Vector2(11.0f, -3.f));
+}
+
+void Billiards::CreateBall(String name, const Vector2& position) {
+    Node *ballNode = scene_->CreateChild(name);
+    ballNode->SetPosition(Vector3(position.x_, 7.5f, position.y_));
+
+    Ball *ball = ballNode->CreateComponent<Ball>();
+    ball->Init("Materials/Red.xml");
+    balls_.Push(ball);
 }
 
 void Billiards::CreateInterface() {
