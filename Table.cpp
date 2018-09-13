@@ -73,6 +73,7 @@ void Table::InitBumper(Node *node, const Vector3 &size, const Vector3 &position)
 
 void Table::InitPocket(String name, const Vector3 &position) {
     Node *pocketNode = node_->CreateChild(name);
+    pocketNode->AddTag("pocket");
     RigidBody *body = pocketNode->CreateComponent<RigidBody>();
     CollisionShape *pocket = pocketNode->CreateComponent<CollisionShape>();
     pocket->SetBox(Vector3(10.0f, 5.0f, 10.0f));

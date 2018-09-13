@@ -26,6 +26,8 @@ public:
     /// Construct.
     Ball(Context *context);
 
+    virtual void Start();
+
     /// Register object factory and attributes.
     static void RegisterObject(Context *context);
 
@@ -36,4 +38,6 @@ public:
 
 protected:
     WeakPtr<RigidBody> body_;
+
+    void HandlePhysicsCollisionStart(StringHash eventType, VariantMap &eventData);
 };

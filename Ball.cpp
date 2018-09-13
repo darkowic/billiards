@@ -6,12 +6,20 @@
 #include <Urho3D/Physics/CollisionShape.h>
 #include <Urho3D/Graphics/Model.h>
 #include <Urho3D/Graphics/Material.h>
-#include <Urho3D/IO/Log.h>
+#include <Urho3D/Physics/PhysicsEvents.h>
 
 #include "Ball.h"
 
+#include <Urho3D/IO/Log.h>
+
 
 Ball::Ball(Context *context) : LogicComponent(context) {
+    SetUpdateEventMask(USE_FIXEDUPDATE);
+}
+
+void Ball::Start() {
+    // Component has been inserted into its scene node. Subscribe to events now
+    SubscribeToEvent(E_PHYSICSCOLLISIONSTART, URHO3D_HANDLER(Ball, HandlePhysicsCollisionStart));
 }
 
 
@@ -48,3 +56,14 @@ void Ball::Init(String material) {
 bool Ball::IsMoving() {
     return body_->GetLinearVelocity() != Vector3::ZERO;
 };
+
+void Ball::HandlePhysicsCollisionStart(StringHash eventType, VariantMap &eventData) {
+
+    using namespace PhysicsCollision;
+
+    Node *nodeA = static_cast<Node *>(eventData[P_NODEA].GetPtr());
+    Node *nodeB = static_cast<Node *>(eventData[P_NODEB].GetPtr());
+    if (nodeA->HasTag("pocket") || nodeB->HasTag("pocket")) {
+        URHO3D_LOGINFO("Collition with Pocket!!!!!!!! OMG OMG");
+    }
+}
