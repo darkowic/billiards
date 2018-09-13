@@ -9,6 +9,9 @@
 
 
 WhiteBall::WhiteBall(Context *context) : Ball(context) {
+    // set initial camera position
+    controls_.pitch_ = 17.0f;
+    controls_.yaw_ = 90.0f;
     // Only the physics update event is needed: unsubscribe from the rest for optimization
     SetUpdateEventMask(USE_FIXEDUPDATE);
 }

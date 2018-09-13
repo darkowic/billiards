@@ -173,7 +173,7 @@ void Billiards::CreateBalls() {
     CreateBall("Ball15", Vector2(11.0f, -3.f));
 }
 
-void Billiards::CreateBall(String name, const Vector2& position) {
+void Billiards::CreateBall(String name, const Vector2 &position) {
     Node *ballNode = scene_->CreateChild(name);
     ballNode->SetPosition(Vector3(position.x_, 7.5f, position.y_));
 
@@ -285,13 +285,21 @@ void Billiards::HandleUpdate(StringHash eventType, VariantMap &eventData) {
     // Take the frame time step, which is stored as a float
     float timeStep = eventData[P_TIMESTEP].GetFloat();
 
-    // Move the camera, scale movement with time step
-//    MoveCamera(timeStep);
-
     // Before any next calculations - update isAnyBallMoving variable
     IsAnyBallMoving();
 
+
     if (whiteBall_) {
+        // handle changing camera mode
+        if (input->GetKeyPress(KEY_C)) {
+            if (!cameraFreeMode_) {
+                // if camera is switch to free mode - assign whiteBall controls to camera
+                yaw_ = whiteBall_->controls_.yaw_;
+                pitch_ = whiteBall_->controls_.pitch_;
+            }
+            cameraFreeMode_ = !cameraFreeMode_;
+        }
+
         UI *ui = GetSubsystem<UI>();
 
         // Get movement controls and assign them to the vehicle component. If UI has a focused element, clear controls
@@ -302,18 +310,23 @@ void Billiards::HandleUpdate(StringHash eventType, VariantMap &eventData) {
                 whiteBall_->controls_.Set(CTRL_PUSH, input->GetKeyDown(KEY_SPACE));
             }
 
-            whiteBall_->controls_.yaw_ += (float) input->GetMouseMoveX() * MOUSE_SENSITIVITY;
-            whiteBall_->controls_.pitch_ += (float) input->GetMouseMoveY() * MOUSE_SENSITIVITY;
-            // Limit pitch
-            whiteBall_->controls_.pitch_ = Clamp(whiteBall_->controls_.pitch_, 10.0f, 70.0f);
+            if (!cameraFreeMode_) {
+                whiteBall_->controls_.yaw_ += (float) input->GetMouseMoveX() * MOUSE_SENSITIVITY;
+                whiteBall_->controls_.pitch_ += (float) input->GetMouseMoveY() * MOUSE_SENSITIVITY;
+                // Limit pitch
+                whiteBall_->controls_.pitch_ = Clamp(whiteBall_->controls_.pitch_, 10.0f, 70.0f);
+            }
         } else {
             whiteBall_->controls_.Set(CTRL_PUSH, 0);
         }
+    } else {
+        cameraFreeMode_ = true;
     }
 
-    // "Shoot" a physics object with left mouse button
-    if (input->GetMouseButtonPress(MOUSEB_LEFT))
-        SpawnObject();
+    // Move the camera, scale movement with time step
+    if (cameraFreeMode_) {
+        MoveCamera(timeStep);
+    }
 }
 
 void Billiards::HandlePostUpdate(StringHash eventType, VariantMap &eventData) {
@@ -322,23 +335,25 @@ void Billiards::HandlePostUpdate(StringHash eventType, VariantMap &eventData) {
 
     Node *whiteBallNode = whiteBall_->GetNode();
 
-    Quaternion dir(whiteBall_->controls_.yaw_, Vector3::UP);
-    dir = dir * Quaternion(whiteBall_->controls_.pitch_, Vector3::RIGHT);
+    if (!cameraFreeMode_) {
+        Quaternion dir(whiteBall_->controls_.yaw_, Vector3::UP);
+        dir = dir * Quaternion(whiteBall_->controls_.pitch_, Vector3::RIGHT);
 
-    Vector3 cameraTargetPos = whiteBallNode->GetPosition() - dir * Vector3(0.0f, 0.0f, CAMERA_DISTANCE);
-    Vector3 cameraStartPos = whiteBallNode->GetPosition();
+        Vector3 cameraTargetPos = whiteBallNode->GetPosition() - dir * Vector3(0.0f, 0.0f, CAMERA_DISTANCE);
+        Vector3 cameraStartPos = whiteBallNode->GetPosition();
 
-    // Raycast camera against static objects (physics collision mask 2)
-    // and move it closer to the vehicle if something in between
-    Ray cameraRay(cameraStartPos, cameraTargetPos - cameraStartPos);
-    float cameraRayLength = (cameraTargetPos - cameraStartPos).Length();
-    PhysicsRaycastResult result;
-    scene_->GetComponent<PhysicsWorld>()->RaycastSingle(result, cameraRay, cameraRayLength, 2);
-    if (result.body_)
-        cameraTargetPos = cameraStartPos + cameraRay.direction_ * (result.distance_ - 0.5f);
+        // Raycast camera against static objects (physics collision mask 2)
+        // and move it closer to the vehicle if something in between
+        Ray cameraRay(cameraStartPos, cameraTargetPos - cameraStartPos);
+        float cameraRayLength = (cameraTargetPos - cameraStartPos).Length();
+        PhysicsRaycastResult result;
+        scene_->GetComponent<PhysicsWorld>()->RaycastSingle(result, cameraRay, cameraRayLength, 2);
+        if (result.body_)
+            cameraTargetPos = cameraStartPos + cameraRay.direction_ * (result.distance_ - 0.5f);
 
-    cameraNode_->SetPosition(cameraTargetPos);
-    cameraNode_->SetRotation(dir);
+        cameraNode_->SetPosition(cameraTargetPos);
+        cameraNode_->SetRotation(dir);
+    }
 
     if (!isAnyBallMoving_) {
         // set push level

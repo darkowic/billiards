@@ -23,6 +23,21 @@ void Interface::Init() {
     UIElement *pushForceLevelBarContainer = uiRoot_->CreateChild<UIElement>();
     pushForceLevelBarContainer->SetPosition(0, 0);
 
+    // Construct new Text object, set string to display and font to use
+    Text *instructionText = uiRoot_->CreateChild<Text>();
+    instructionText->SetText(
+            "Use mouse to rotate camera\n"
+            "Use C to toggle camera mode"
+    );
+    instructionText->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
+    // The text has multiple rows. Center them in relation to each other
+    instructionText->SetTextAlignment(HA_CENTER);
+
+    // Position the text relative to the screen center
+    instructionText->SetHorizontalAlignment(HA_CENTER);
+    instructionText->SetVerticalAlignment(VA_BOTTOM);
+    instructionText->SetPosition(0, -instructionText->GetHeight() / 2 - 10);
+
     Text *pushForceLevelBarTipText = pushForceLevelBarContainer->CreateChild<Text>();
     pushForceLevelBarTipText->SetText("Push force level bar");
     pushForceLevelBarTipText->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);

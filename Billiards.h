@@ -94,4 +94,5 @@ private:
     WeakPtr<Interface> interface_;
     bool isAnyBallMoving_ = false;
     Vector<Ball *> balls_;
+    bool cameraFreeMode_ = false;
 };
