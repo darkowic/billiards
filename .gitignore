@@ -15,6 +15,9 @@
 /.idea/
 /cmake-build-*/
 
+# Code::Blocks project settings
+/*.cbp
+
 # CMake generated build files
 CMakeCache.txt
 CMakeFiles/
