@@ -62,6 +62,8 @@ void Sample::Setup()
     engineParameters_[EP_FULL_SCREEN]  = false;
     engineParameters_[EP_HEADLESS]     = false;
     engineParameters_[EP_SOUND]        = false;
+    engineParameters_[EP_WINDOW_WIDTH] = 1920;
+    engineParameters_[EP_WINDOW_HEIGHT] = 1080;
 
     // Construct a search path to find the resource prefix with two entries:
     // The first entry is an empty path which will be substituted with program/bin directory -- this entry is for binary when it is still in build tree
@@ -150,50 +152,13 @@ void Sample::SetLogoVisible(bool enable)
         logoSprite_->SetVisible(enable);
 }
 
-void Sample::CreateLogo()
-{
-    // Get logo texture
-    ResourceCache* cache = GetSubsystem<ResourceCache>();
-    Texture2D* logoTexture = cache->GetResource<Texture2D>("Textures/FishBoneLogo.png");
-    if (!logoTexture)
-        return;
-
-    // Create logo sprite and add to the UI layout
-    UI* ui = GetSubsystem<UI>();
-    logoSprite_ = ui->GetRoot()->CreateChild<Sprite>();
-
-    // Set logo sprite texture
-    logoSprite_->SetTexture(logoTexture);
-
-    int textureWidth = logoTexture->GetWidth();
-    int textureHeight = logoTexture->GetHeight();
-
-    // Set logo sprite scale
-    logoSprite_->SetScale(256.0f / textureWidth);
-
-    // Set logo sprite size
-    logoSprite_->SetSize(textureWidth, textureHeight);
-
-    // Set logo sprite hot spot
-    logoSprite_->SetHotSpot(textureWidth, textureHeight);
-
-    // Set logo sprite alignment
-    logoSprite_->SetAlignment(HA_RIGHT, VA_BOTTOM);
-
-    // Make logo not fully opaque to show the scene underneath
-    logoSprite_->SetOpacity(0.9f);
-
-    // Set a low priority for the logo so that other UI elements can be drawn on top
-    logoSprite_->SetPriority(-100);
-}
-
 void Sample::SetWindowTitleAndIcon()
 {
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     Graphics* graphics = GetSubsystem<Graphics>();
     Image* icon = cache->GetResource<Image>("Textures/UrhoIcon.png");
     graphics->SetWindowIcon(icon);
-    graphics->SetWindowTitle("Urho3D Sample");
+    graphics->SetWindowTitle("Billiards");
 }
 
 void Sample::CreateConsoleAndDebugHud()

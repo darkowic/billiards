@@ -38,7 +38,7 @@ void Interface::Init() {
     // Position the text relative to the screen center
     instructionText->SetHorizontalAlignment(HA_CENTER);
     instructionText->SetVerticalAlignment(VA_BOTTOM);
-    instructionText->SetPosition(0, -instructionText->GetHeight() / 2 - 10);
+    instructionText->SetPosition(0, -instructionText->GetHeight() - 10);
 
     Text *pushForceLevelBarTipText = pushForceLevelBarContainer->CreateChild<Text>();
     pushForceLevelBarTipText->SetText("Push force level bar");
