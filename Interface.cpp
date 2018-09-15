@@ -76,6 +76,17 @@ void Interface::UpdatePushLevel(int level) {
     pushForceLevelBarValue_->SetText(GetPushForceLevelString(level));
 }
 
+void Interface::ShowWinScreen() {
+    ResourceCache *cache = GetSubsystem<ResourceCache>();
+    Text *winText = uiRoot_->CreateChild<Text>();
+    winText->SetText("You win!");
+    winText->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 25);
+
+    // Position the text relative to the screen center
+    winText->SetHorizontalAlignment(HA_CENTER);
+    winText->SetVerticalAlignment(VA_CENTER);
+}
+
 String Interface::GetPushForceLevelString(int level) {
     String text = "";
     for (int i = 1; i <= PUSH_FORCE_LEVEL_BAR_DOTS_COUNT; ++i) {

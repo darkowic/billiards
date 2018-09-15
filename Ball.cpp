@@ -14,17 +14,21 @@
 
 
 Ball::Ball(Context *context) : LogicComponent(context) {
+    // Only the physics update event is needed: unsubscribe from the rest for optimization
     SetUpdateEventMask(USE_FIXEDUPDATE);
+}
+
+void Ball::RegisterObject(Context *context) {
+    context->RegisterFactory<Ball>();
 }
 
 void Ball::Start() {
     // Component has been inserted into its scene node. Subscribe to events now
-    SubscribeToEvent(E_PHYSICSCOLLISIONSTART, URHO3D_HANDLER(Ball, HandlePhysicsCollisionStart));
+    SubscribeToEvent(node_, E_NODECOLLISIONSTART, URHO3D_HANDLER(Ball, HandleNodeCollisionStart));
 }
 
-
-void Ball::RegisterObject(Context *context) {
-    context->RegisterFactory<Ball>();
+String Ball::GetName() {
+    return node_->GetName();
 }
 
 void Ball::Init(String material) {
@@ -57,13 +61,25 @@ bool Ball::IsMoving() {
     return body_->GetLinearVelocity() != Vector3::ZERO;
 };
 
-void Ball::HandlePhysicsCollisionStart(StringHash eventType, VariantMap &eventData) {
-
-    using namespace PhysicsCollision;
-
-    Node *nodeA = static_cast<Node *>(eventData[P_NODEA].GetPtr());
-    Node *nodeB = static_cast<Node *>(eventData[P_NODEB].GetPtr());
-    if (nodeA->HasTag("pocket") || nodeB->HasTag("pocket")) {
-        URHO3D_LOGINFO("Collition with Pocket!!!!!!!! OMG OMG");
+void Ball::HandleNodeCollisionStart(StringHash eventType, VariantMap &eventData) {
+    if (IsCollidingWithPocket(eventData)) {
+        HandleCollisionWithPocket(eventData);
     }
+}
+
+
+bool Ball::IsCollidingWithPocket(VariantMap &eventData) {
+    Node *otherNode = static_cast<Node *>(eventData[NodeCollision::P_OTHERNODE].GetPtr());
+    if (otherNode->HasTag("pocket")) {
+        return true;
+    }
+    return false;
+}
+
+void Ball::HandleCollisionWithPocket(VariantMap &eventData) {
+    VariantMap data;
+    data[BallInPocket::P_BALLNAME] = GetName();
+    SendEvent(E_BALLINPOCKET, data);
+    node_->Remove();
+    Remove();
 }

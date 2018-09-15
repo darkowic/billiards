@@ -13,10 +13,18 @@ using namespace Urho3D;
 // http://billiards.colostate.edu/threads/physics.html
 const float BALL_SCALE = 0.7f;
 const float BALL_MASS = 1.0f;
-const float BALL_FRICTION = 0.2f;
+//const float BALL_FRICTION = 0.2f;
+const float BALL_FRICTION = 0.8f;
 const float BALL_LINEAR_DAMPING = 0.1f;
-const float BALL_ANGULAR_DAMPING = 0.3f;
+const float BALL_ANGULAR_DAMPING = 0.8f;
+//const float BALL_ANGULAR_DAMPING = 0.3f;
 const float BALL_RESTITUTION = 0.7f;
+
+
+// Events
+URHO3D_EVENT(E_BALLINPOCKET, BallInPocket) {
+    URHO3D_PARAM(P_BALLNAME, BallName);
+}
 
 
 class Ball : public LogicComponent {
@@ -36,8 +44,15 @@ public:
 
     bool IsMoving();
 
+    String GetName();
+
 protected:
     WeakPtr<RigidBody> body_;
 
-    void HandlePhysicsCollisionStart(StringHash eventType, VariantMap &eventData);
+    virtual void HandleCollisionWithPocket(VariantMap &eventData);
+
+private:
+    bool IsCollidingWithPocket(VariantMap &eventData);
+
+    void HandleNodeCollisionStart(StringHash eventType, VariantMap &eventData);
 };

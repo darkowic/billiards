@@ -2,6 +2,7 @@
 #include <Urho3D/Scene/LogicComponent.h>
 #include <Urho3D/Scene/Node.h>
 #include <Urho3D/Physics/RigidBody.h>
+#include <Urho3D/Physics/PhysicsEvents.h>
 
 #include <Urho3D/IO/Log.h>
 
@@ -47,3 +48,6 @@ void WhiteBall::FixedUpdate(float timeStep) {
     }
 }
 
+void WhiteBall::HandleCollisionWithPocket(VariantMap &eventData) {
+    URHO3D_LOGINFO("White ball collides with pocket!");
+}

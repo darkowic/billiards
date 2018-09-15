@@ -152,10 +152,11 @@ void Billiards::CreateWhiteBall() {
     whiteBall_ = whiteBallNode->CreateComponent<WhiteBall>();
     // Create the rendering and physics components
     whiteBall_->Init(cameraNode_);
-    balls_.Push(whiteBall_);
 }
 
 void Billiards::CreateBalls() {
+    // Test ball:
+    // CreateBall("Ball1", Vector2(-12.0f, -3.0f));
     CreateBall("Ball1", Vector2(7.0f, -1.0f));
     CreateBall("Ball2", Vector2(8.0f, -1.5f));
     CreateBall("Ball3", Vector2(8.0f, -0.5f));
@@ -179,7 +180,7 @@ void Billiards::CreateBall(String name, const Vector2 &position) {
 
     Ball *ball = ballNode->CreateComponent<Ball>();
     ball->Init("Materials/Red.xml");
-    balls_.Push(ball);
+    balls_.Push(WeakPtr<Ball>(ball));
 }
 
 void Billiards::CreateInterface() {
@@ -275,6 +276,20 @@ void Billiards::SubscribeToEvents() {
     // Subscribe HandlePostRenderUpdate() function for processing the post-render update event, during which we request
     // debug geometry
     SubscribeToEvent(E_POSTRENDERUPDATE, URHO3D_HANDLER(Billiards, HandlePostRenderUpdate));
+
+    SubscribeToEvent(E_BALLINPOCKET, URHO3D_HANDLER(Billiards, HandleBallInPocket));
+}
+
+void Billiards::HandleBallInPocket(StringHash eventType, VariantMap &eventData) {
+    // remove ball from balls_ vector
+    String ballName = eventData[BallInPocket::P_BALLNAME].GetString();
+
+    for (Vector<WeakPtr<Ball>>::Iterator it = balls_.Begin(); it != balls_.End(); ++it) {
+        if ((*it)->GetName() == ballName) {
+            balls_.Remove(*it);
+            break;
+        }
+    }
 }
 
 void Billiards::HandleUpdate(StringHash eventType, VariantMap &eventData) {
@@ -287,6 +302,15 @@ void Billiards::HandleUpdate(StringHash eventType, VariantMap &eventData) {
 
     // Before any next calculations - update isAnyBallMoving variable
     IsAnyBallMoving();
+
+    if (!isAnyBallMoving_ && balls_.Empty()) {
+        // no update anymore - show win screen
+        interface_->ShowWinScreen();
+        UnsubscribeFromEvent(E_UPDATE);
+        UnsubscribeFromEvent(E_POSTUPDATE);
+        UnsubscribeFromEvent(E_BALLINPOCKET);
+        return;
+    }
 
 
     if (whiteBall_) {
@@ -373,11 +397,19 @@ void Billiards::HandlePostRenderUpdate(StringHash eventType, VariantMap &eventDa
 
 bool Billiards::IsAnyBallMoving() {
     isAnyBallMoving_ = false;
-    for (Vector<Ball *>::Iterator it = balls_.Begin(); it != balls_.End(); ++it) {
-        if ((*it)->IsMoving()) {
-            isAnyBallMoving_ = true;
-            break;
+
+    if (whiteBall_->IsMoving()) {
+        // if white ball is moving - do not even check other balls
+        isAnyBallMoving_ = true;
+    } else {
+        for (Vector<WeakPtr<Ball>>::Iterator it = balls_.Begin(); it != balls_.End(); ++it) {
+            WeakPtr<Ball> ball = (*it);
+            if (ball && ball->IsMoving()) {
+                isAnyBallMoving_ = true;
+                break;
+            }
         }
+
     }
     return isAnyBallMoving_;
 }

@@ -77,6 +77,8 @@ private:
     /// Handle the post-render update event.
     void HandlePostRenderUpdate(StringHash eventType, VariantMap &eventData);
 
+    void HandleBallInPocket(StringHash eventType, VariantMap &eventData);
+
     void SpawnObject();
 
     void CreateTable();
@@ -93,6 +95,6 @@ private:
     WeakPtr<WhiteBall> whiteBall_;
     WeakPtr<Interface> interface_;
     bool isAnyBallMoving_ = false;
-    Vector<Ball *> balls_;
+    Vector<WeakPtr<Ball>> balls_;
     bool cameraFreeMode_ = false;
 };

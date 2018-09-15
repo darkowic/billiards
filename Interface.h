@@ -31,6 +31,8 @@ public:
 
     void SetStatusText(bool isMoving);
 
+    void ShowWinScreen();
+
 private:
     String GetPushForceLevelString(int);
 

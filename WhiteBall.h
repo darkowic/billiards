@@ -41,5 +41,7 @@ public:
     float pushButtonHoldingTime_ = 0.f;
 
 private:
+    void HandleCollisionWithPocket(VariantMap &eventData);
+
     WeakPtr<Node> cameraNode_;
 };
