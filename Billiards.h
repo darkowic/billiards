@@ -79,6 +79,8 @@ private:
 
     void HandleBallInPocket(StringHash eventType, VariantMap &eventData);
 
+    void HandleWhiteBallInPocket(StringHash eventType, VariantMap &eventData);
+
     void SpawnObject();
 
     void CreateTable();
@@ -87,7 +89,7 @@ private:
 
     void CreateBalls();
 
-    void CreateBall(String name, const Vector2&);
+    void CreateBall(String name, const Vector2 &position);
 
     bool IsAnyBallMoving();
 
@@ -97,4 +99,5 @@ private:
     bool isAnyBallMoving_ = false;
     Vector<WeakPtr<Ball>> balls_;
     bool cameraFreeMode_ = false;
+    bool whiteBallInPocket_ = false;
 };

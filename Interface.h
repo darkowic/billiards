@@ -33,6 +33,10 @@ public:
 
     void ShowWinScreen();
 
+    void ShowWhiteBallInPocketInfo();
+
+    void HideWhiteBallInPocketInfo();
+
 private:
     String GetPushForceLevelString(int);
 

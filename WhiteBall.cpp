@@ -11,8 +11,8 @@
 
 WhiteBall::WhiteBall(Context *context) : Ball(context) {
     // set initial camera position
-    controls_.pitch_ = 17.0f;
-    controls_.yaw_ = 90.0f;
+    controls_.pitch_ = WHITE_BALL_INITIAL_PITH;
+    controls_.yaw_ = WHITE_BALL_INITIAL_YAW;
     // Only the physics update event is needed: unsubscribe from the rest for optimization
     SetUpdateEventMask(USE_FIXEDUPDATE);
 }
@@ -49,5 +49,8 @@ void WhiteBall::FixedUpdate(float timeStep) {
 }
 
 void WhiteBall::HandleCollisionWithPocket(VariantMap &eventData) {
-    URHO3D_LOGINFO("White ball collides with pocket!");
+    body_->ResetForces();
+    SendEvent(E_WHITEBALLINPOCKET);
+    node_->Remove();
+    Remove();
 }

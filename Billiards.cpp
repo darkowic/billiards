@@ -54,6 +54,9 @@ const float CAMERA_DISTANCE = 20.0f;
 // Mouse sensitivity as degrees per pixel
 const float MOUSE_SENSITIVITY = 0.1f;
 
+const Vector3 INITIAL_WHITE_BALL_POSITION = Vector3(-10.0f, 7.5f, -1.0f);
+
+const Vector3 CAMERA_INITIAL_POSITION = Vector3(-29.14f, 13.23f, -1.0f);
 
 Billiards::Billiards(Context *context) :
         Sample(context) {
@@ -146,7 +149,7 @@ void Billiards::CreateTable() {
 
 void Billiards::CreateWhiteBall() {
     Node *whiteBallNode = scene_->CreateChild("WhiteBall");
-    whiteBallNode->SetPosition(Vector3(-10.0f, 7.5f, -1.0f));
+    whiteBallNode->SetPosition(INITIAL_WHITE_BALL_POSITION);
 
     // Create the vehicle logic component
     whiteBall_ = whiteBallNode->CreateComponent<WhiteBall>();
@@ -155,8 +158,9 @@ void Billiards::CreateWhiteBall() {
 }
 
 void Billiards::CreateBalls() {
-    // Test ball:
-    // CreateBall("Ball1", Vector2(-12.0f, -3.0f));
+    // Test balls:
+//     CreateBall("Ball1TestNoWhite", Vector2(-14.0f, -7.5f));
+//     CreateBall("Ball1", Vector2(-12.0f, -3.0f));
     CreateBall("Ball1", Vector2(7.0f, -1.0f));
     CreateBall("Ball2", Vector2(8.0f, -1.5f));
     CreateBall("Ball3", Vector2(8.0f, -0.5f));
@@ -232,7 +236,6 @@ void Billiards::SpawnObject() {
 }
 
 
-// TODO: use this in free camera mode
 void Billiards::MoveCamera(float timeStep) {
     // Do not move if the UI has a focused element (the console)
     if (GetSubsystem<UI>()->GetFocusElement())
@@ -278,6 +281,8 @@ void Billiards::SubscribeToEvents() {
     SubscribeToEvent(E_POSTRENDERUPDATE, URHO3D_HANDLER(Billiards, HandlePostRenderUpdate));
 
     SubscribeToEvent(E_BALLINPOCKET, URHO3D_HANDLER(Billiards, HandleBallInPocket));
+
+    SubscribeToEvent(E_WHITEBALLINPOCKET, URHO3D_HANDLER(Billiards, HandleWhiteBallInPocket));
 }
 
 void Billiards::HandleBallInPocket(StringHash eventType, VariantMap &eventData) {
@@ -291,6 +296,16 @@ void Billiards::HandleBallInPocket(StringHash eventType, VariantMap &eventData) 
         }
     }
 }
+
+void Billiards::HandleWhiteBallInPocket(StringHash eventType, VariantMap &eventData) {
+    // remove ball from balls_ vector
+    whiteBallInPocket_ = true;
+    yaw_ = WHITE_BALL_INITIAL_YAW;
+    pitch_ = WHITE_BALL_INITIAL_PITH;
+    cameraNode_->SetPosition(CAMERA_INITIAL_POSITION);
+    interface_->ShowWhiteBallInPocketInfo();
+}
+
 
 void Billiards::HandleUpdate(StringHash eventType, VariantMap &eventData) {
     using namespace Update;
@@ -354,8 +369,18 @@ void Billiards::HandleUpdate(StringHash eventType, VariantMap &eventData) {
 }
 
 void Billiards::HandlePostUpdate(StringHash eventType, VariantMap &eventData) {
-    if (!whiteBall_)
+    if (!whiteBall_ && !whiteBallInPocket_)
         return;
+
+    if (whiteBallInPocket_) {
+        if (!isAnyBallMoving_) {
+            CreateWhiteBall();
+            whiteBallInPocket_ = false;
+            cameraFreeMode_ = false;
+            interface_->HideWhiteBallInPocketInfo();
+        }
+        return;
+    }
 
     Node *whiteBallNode = whiteBall_->GetNode();
 
@@ -398,7 +423,7 @@ void Billiards::HandlePostRenderUpdate(StringHash eventType, VariantMap &eventDa
 bool Billiards::IsAnyBallMoving() {
     isAnyBallMoving_ = false;
 
-    if (whiteBall_->IsMoving()) {
+    if (whiteBall_ && whiteBall_->IsMoving()) {
         // if white ball is moving - do not even check other balls
         isAnyBallMoving_ = true;
     } else {

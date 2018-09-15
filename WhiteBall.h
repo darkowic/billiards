@@ -18,6 +18,13 @@ const int CTRL_PUSH = 1;
 const float PUSH_FORCE_PER_SECOND = 1500.0f;
 const unsigned MAX_PUSH_BUTTON_HOLD_TIME = 2.0f; // 2 seconds???
 
+const float WHITE_BALL_INITIAL_PITH = 17.0f;
+const float WHITE_BALL_INITIAL_YAW = 90.0f;
+
+
+URHO3D_EVENT(E_WHITEBALLINPOCKET, WhiteBallInPocket) {
+}
+
 
 class WhiteBall : public Ball {
 URHO3D_OBJECT(WhiteBall, Ball);
@@ -44,4 +51,5 @@ private:
     void HandleCollisionWithPocket(VariantMap &eventData);
 
     WeakPtr<Node> cameraNode_;
+    Vector3 initialPosition_;
 };

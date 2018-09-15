@@ -26,6 +26,7 @@ void Interface::Init() {
     // Construct new Text object, set string to display and font to use
     Text *instructionText = uiRoot_->CreateChild<Text>();
     instructionText->SetText(
+            "Put all red balls in pockets using white ball\n"
             "Use mouse to rotate camera\n"
             "Use C to toggle camera mode"
     );
@@ -97,4 +98,20 @@ String Interface::GetPushForceLevelString(int level) {
         }
     }
     return text;
+}
+
+void Interface::ShowWhiteBallInPocketInfo() {
+    ResourceCache *cache = GetSubsystem<ResourceCache>();
+    Text *text = uiRoot_->CreateChild<Text>("whiteBallInPocketInfo");
+    text->SetText("Oh! White ball in pocket...\nPlease wait until all balls stop moving...");
+    text->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 20);
+    text->SetTextAlignment(HA_CENTER);
+
+    // Position the text relative to the screen center
+    text->SetHorizontalAlignment(HA_CENTER);
+    text->SetVerticalAlignment(VA_CENTER);
+}
+
+void Interface::HideWhiteBallInPocketInfo() {
+    uiRoot_->GetChild(String("whiteBallInPocketInfo"))->Remove();
 }
