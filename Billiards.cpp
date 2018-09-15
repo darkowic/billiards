@@ -366,6 +366,10 @@ void Billiards::HandleUpdate(StringHash eventType, VariantMap &eventData) {
     if (cameraFreeMode_) {
         MoveCamera(timeStep);
     }
+
+    // Toggle physics debug geometry with D
+    if (input->GetKeyPress(KEY_D))
+        drawDebug_ = !drawDebug_;
 }
 
 void Billiards::HandlePostUpdate(StringHash eventType, VariantMap &eventData) {
@@ -416,8 +420,9 @@ void Billiards::HandlePostUpdate(StringHash eventType, VariantMap &eventData) {
 
 void Billiards::HandlePostRenderUpdate(StringHash eventType, VariantMap &eventData) {
     // If draw debug mode is enabled, draw physics debug geometry. Use depth test to make the result easier to interpret
-    //    if (drawDebug_)
-    scene_->GetComponent<PhysicsWorld>()->DrawDebugGeometry(true);
+    if (drawDebug_) {
+        scene_->GetComponent<PhysicsWorld>()->DrawDebugGeometry(true);
+    }
 }
 
 bool Billiards::IsAnyBallMoving() {

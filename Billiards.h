@@ -100,4 +100,5 @@ private:
     Vector<WeakPtr<Ball>> balls_;
     bool cameraFreeMode_ = false;
     bool whiteBallInPocket_ = false;
+    bool drawDebug_ = false;
 };

@@ -28,7 +28,8 @@ void Interface::Init() {
     instructionText->SetText(
             "Put all red balls in pockets using white ball\n"
             "Use mouse to rotate camera\n"
-            "Use C to toggle camera mode"
+            "C to toggle camera mode\n"
+            "D to toggle physics debug geometry"
     );
     instructionText->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
     // The text has multiple rows. Center them in relation to each other
