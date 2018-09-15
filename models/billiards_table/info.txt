@@ -1,0 +1,11 @@
+Name: stol_samurai
+Version: 2015
+Preview: Yes
+Units: Inches
+Dimension: 141.83 x 74.31 x 31.35
+Polys: 571 464
+XForm: No
+Box Trick: No
+Model Parts: 8
+Render: Corona
+Formats: 3Ds Max 2015, FBX
