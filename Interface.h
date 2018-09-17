@@ -33,6 +33,8 @@ public:
 
     void ShowWinScreen();
 
+    void ShowGameOverScreen();
+
     void ShowWhiteBallInPocketInfo();
 
     void HideWhiteBallInPocketInfo();

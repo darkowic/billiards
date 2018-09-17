@@ -50,6 +50,8 @@
 
 URHO3D_DEFINE_APPLICATION_MAIN(Billiards)
 
+const String BLACK_BALL_NAME = "BlackBall";
+
 const float CAMERA_DISTANCE = 20.0f;
 // Mouse sensitivity as degrees per pixel
 const float MOUSE_SENSITIVITY = 0.1f;
@@ -160,12 +162,13 @@ void Billiards::CreateWhiteBall() {
 void Billiards::CreateBalls() {
     // Test balls:
 //     CreateBall("Ball1TestNoWhite", Vector2(-14.0f, -7.5f));
-//     CreateBall("Ball1", Vector2(-12.0f, -3.0f));
+//    CreateBall(BLACK_BALL_NAME, Vector2(-14.0f, -7.5f), "Materials/Black.xml");
+//    CreateBall("Ball1", Vector2(-12.0f, -3.0f));
     CreateBall("Ball1", Vector2(7.0f, -1.0f));
     CreateBall("Ball2", Vector2(8.0f, -1.5f));
     CreateBall("Ball3", Vector2(8.0f, -0.5f));
     CreateBall("Ball4", Vector2(9.0f, 0.f));
-    CreateBall("Ball5", Vector2(9.0f, -1.0f));
+    CreateBall(BLACK_BALL_NAME, Vector2(9.0f, -1.0f), "Materials/Black.xml");
     CreateBall("Ball6", Vector2(9.0f, -2.0f));
     CreateBall("Ball7", Vector2(10.0f, 0.5f));
     CreateBall("Ball8", Vector2(10.0f, -0.5f));
@@ -178,12 +181,12 @@ void Billiards::CreateBalls() {
     CreateBall("Ball15", Vector2(11.0f, -3.f));
 }
 
-void Billiards::CreateBall(String name, const Vector2 &position) {
+void Billiards::CreateBall(String name, const Vector2 &position, String material) {
     Node *ballNode = scene_->CreateChild(name);
     ballNode->SetPosition(Vector3(position.x_, 7.5f, position.y_));
 
     Ball *ball = ballNode->CreateComponent<Ball>();
-    ball->Init("Materials/Red.xml");
+    ball->Init(material);
     balls_.Push(WeakPtr<Ball>(ball));
 }
 
@@ -289,6 +292,16 @@ void Billiards::HandleBallInPocket(StringHash eventType, VariantMap &eventData) 
     // remove ball from balls_ vector
     String ballName = eventData[BallInPocket::P_BALLNAME].GetString();
 
+    if (ballName == BLACK_BALL_NAME) {
+        interface_->ShowGameOverScreen();
+        cameraFreeMode_ = true;
+        UnsubscribeFromEvent(E_UPDATE);
+        UnsubscribeFromEvent(E_POSTUPDATE);
+        UnsubscribeFromEvent(E_BALLINPOCKET);
+        UnsubscribeFromEvent(E_WHITEBALLINPOCKET);
+        return;
+    }
+
     for (Vector<WeakPtr<Ball>>::Iterator it = balls_.Begin(); it != balls_.End(); ++it) {
         if ((*it)->GetName() == ballName) {
             balls_.Remove(*it);
@@ -324,6 +337,7 @@ void Billiards::HandleUpdate(StringHash eventType, VariantMap &eventData) {
         UnsubscribeFromEvent(E_UPDATE);
         UnsubscribeFromEvent(E_POSTUPDATE);
         UnsubscribeFromEvent(E_BALLINPOCKET);
+        UnsubscribeFromEvent(E_WHITEBALLINPOCKET);
         return;
     }
 
@@ -367,8 +381,8 @@ void Billiards::HandleUpdate(StringHash eventType, VariantMap &eventData) {
         MoveCamera(timeStep);
     }
 
-    // Toggle physics debug geometry with D
-    if (input->GetKeyPress(KEY_D))
+    // Toggle physics debug geometry with X
+    if (input->GetKeyPress(KEY_X))
         drawDebug_ = !drawDebug_;
 }
 

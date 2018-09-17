@@ -29,7 +29,7 @@ void Interface::Init() {
             "Put all red balls in pockets using white ball\n"
             "Use mouse to rotate camera\n"
             "C to toggle camera mode\n"
-            "D to toggle physics debug geometry"
+            "X to toggle physics debug geometry"
     );
     instructionText->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
     // The text has multiple rows. Center them in relation to each other
@@ -82,6 +82,17 @@ void Interface::ShowWinScreen() {
     ResourceCache *cache = GetSubsystem<ResourceCache>();
     Text *winText = uiRoot_->CreateChild<Text>();
     winText->SetText("You win!");
+    winText->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 25);
+
+    // Position the text relative to the screen center
+    winText->SetHorizontalAlignment(HA_CENTER);
+    winText->SetVerticalAlignment(VA_CENTER);
+}
+
+void Interface::ShowGameOverScreen() {
+    ResourceCache *cache = GetSubsystem<ResourceCache>();
+    Text *winText = uiRoot_->CreateChild<Text>();
+    winText->SetText("Oops! Black ball in pocket... Game over!");
     winText->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 25);
 
     // Position the text relative to the screen center
